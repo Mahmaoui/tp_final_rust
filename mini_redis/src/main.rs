@@ -1,6 +1,13 @@
+pub(crate) mod handlers;
+
+use std::collections::HashMap;
+use std::sync::Arc;
+use tokio::net::TcpListener;
+use tokio::sync::Mutex;
+use crate::handlers::{handle_client, Store};
+
 #[tokio::main]
 async fn main() {
-    // Initialiser tracing
     tracing_subscriber::fmt()
         .with_env_filter(
             tracing_subscriber::EnvFilter::try_from_default_env()
@@ -8,14 +15,13 @@ async fn main() {
         )
         .init();
 
-    // TODO: Implémenter le serveur MiniRedis sur 127.0.0.1:7878
-    //
-    // Étapes suggérées :
-    // 1. Créer le store partagé (Arc<Mutex<HashMap<String, ...>>>)
-    // 2. Bind un TcpListener sur 127.0.0.1:7878
-    // 3. Accept loop : pour chaque connexion, spawn une tâche
-    // 4. Dans chaque tâche : lire les requêtes JSON ligne par ligne,
-    //    traiter la commande, envoyer la réponse JSON + '\n'
-
-    println!("MiniRedis - à implémenter !");
+    let store: Store = Arc::new(Mutex::new(HashMap::new()));
+    let listener = TcpListener::bind("127.0.0.1:7878").await.unwrap();
+    loop {
+        let (sock, _addr) = listener.accept().await.unwrap();
+        let store = store.clone();
+        tokio::spawn(async move {
+            handle_client(sock, store).await;
+        });
+    }
 }
