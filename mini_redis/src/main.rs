@@ -1,10 +1,10 @@
 pub(crate) mod handlers;
 
+use crate::handlers::{handle_client, Store};
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::net::TcpListener;
 use tokio::sync::Mutex;
-use crate::handlers::{handle_client, Store};
 
 #[tokio::main]
 async fn main() {
